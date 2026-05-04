@@ -1,0 +1,37 @@
+name: Build Plugin Zips
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'plugins/**'
+      - '.github/workflows/plugin-zips.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-zips:
+    name: Zip plugins
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Zip each plugin
+        run: |
+          mkdir -p plugin-zips
+          shopt -s nullglob
+          cd plugins
+          for dir in */; do
+            plugin="${dir%/}"
+            zip -r "../plugin-zips/${plugin}.zip" "$plugin"
+            echo "Zipped: ${plugin}.zip"
+          done
+
+      - name: Upload plugin zips
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-zips
+          path: plugin-zips/
+          retention-days: 90
